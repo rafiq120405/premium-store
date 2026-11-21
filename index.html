@@ -35,11 +35,11 @@
 
       <div id="navAuthArea" class="flex items-center space-x-3">
         <!-- Tampilan ini akan berubah otomatis via JS ketika sudah login -->
-        <button onclick="openModal('authModal')"
-          class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2 rounded-xl text-sm font-semibold transition flex items-center space-x-2">
+        <a href="login.html"
+          class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2 rounded-xl text-sm font-semibold transition flex items-center space-x-2 shadow-lg shadow-indigo-600/20">
           <i class="fa-solid fa-user"></i>
           <span>Masuk / Daftar</span>
-        </button>
+        </a>
       </div>
     </div>
   </nav>
@@ -76,7 +76,7 @@
 
   <!-- ==================== MODAL LOGIN / REGISTER ==================== -->
   <div id="authModal"
-    class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 relative">
       <button onclick="closeModal('authModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white">
         <i class="fa-solid fa-xmark text-lg"></i>
@@ -112,7 +112,7 @@
 
   <!-- ==================== MODAL OPSI PEMBELIAN ==================== -->
   <div id="optionModal"
-    class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 items-center justify-center p-4">
     <div
       class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 relative max-h-[90vh] overflow-y-auto">
       <button onclick="closeModal('optionModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white">
@@ -161,7 +161,7 @@
 
   <!-- ==================== MODAL QRIS CHECKOUT ==================== -->
   <div id="qrisModal"
-    class="fixed inset-0 bg-black/75 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    class="fixed inset-0 bg-black/75 backdrop-blur-sm hidden z-50 items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-6 text-center relative">
       <button onclick="closeModal('qrisModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white">
         <i class="fa-solid fa-xmark text-lg"></i>
@@ -354,10 +354,10 @@
         `;
       } else {
         area.innerHTML = `
-          <button onclick="openModal('authModal')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2 rounded-xl text-sm font-semibold transition flex items-center space-x-2">
+          <a href="login.html" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2 rounded-xl text-sm font-semibold transition flex items-center space-x-2 shadow-lg shadow-indigo-600/20">
             <i class="fa-solid fa-user"></i>
             <span>Masuk / Daftar</span>
-          </button>
+          </a>
         `;
       }
     }
@@ -365,9 +365,8 @@
     // HANDLER KLIK "BELI SEKARANG"
     function handleBuyClick(productId) {
       if (!currentUser) {
-        // JIKA BELUM LOGIN -> MUNCULKAN MODAL LOGIN TERLEBIH DAHULU
-        pendingPurchaseProdId = productId;
-        openModal('authModal');
+        // Alihkan langsung ke laman login dengan parameter produk yang dipilih
+        window.location.href = `login.html?product=${encodeURIComponent(productId)}`;
       } else {
         // JIKA SUDAH LOGIN -> BUKA PILIHAN VARIAN
         openOptionModal(productId);
@@ -575,8 +574,18 @@ Saya sudah melakukan transfer QRIS. Mohon segera diproses ya!`;
     }
 
     // UTILITY BUKA / TUTUP MODAL
-    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+    function openModal(id) { 
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.remove('hidden');
+      el.classList.add('flex');
+    }
+    function closeModal(id) { 
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.add('hidden');
+      el.classList.remove('flex');
+    }
 
     // AMBIL DATA PRODUK DARI SUPABASE JIKA ADA
     async function loadProductsFromSupabase() {
@@ -594,10 +603,23 @@ Saya sudah melakukan transfer QRIS. Mohon segera diproses ya!`;
       renderProducts();
     }
 
+    // PERIKSA REDIRECT DARI LAMAN LOGIN
+    function checkRedirectParams() {
+      const params = new URLSearchParams(window.location.search);
+      const buyProductId = params.get('buy');
+      if (buyProductId) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+        setTimeout(() => {
+          openOptionModal(buyProductId);
+        }, 300);
+      }
+    }
+
     // INISIALISASI HALAMAN
     loadProductsFromSupabase();
     updateNavbar();
     checkSupabaseSession();
+    checkRedirectParams();
   </script>
 </body>
 

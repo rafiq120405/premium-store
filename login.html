@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Masuk / Daftar - PremiumHub</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Supabase JS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+  </style>
+</head>
+
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between">
+
+  <!-- TOP HEADER / BACK TO HOME -->
+  <div class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
+    <a href="index.html" class="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white transition font-medium">
+      <i class="fa-solid fa-arrow-left"></i>
+      <span>Kembali ke Beranda</span>
+    </a>
+  </div>
+
+  <!-- MAIN LOGIN / REGISTER CONTAINER -->
+  <div class="flex-grow flex items-center justify-center px-4 py-8">
+    <div class="w-full max-w-md">
+
+      <!-- LOGO & BRAND -->
+      <div class="text-center mb-8">
+        <a href="index.html" class="inline-flex items-center space-x-2">
+          <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center font-black text-2xl shadow-lg shadow-indigo-500/30">
+            P
+          </div>
+          <span class="font-extrabold text-2xl tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">PremiumHub</span>
+        </a>
+        <h2 id="pageTitle" class="text-xl font-bold text-white mt-4">Masuk ke Akun Anda</h2>
+        <p id="pageSubtitle" class="text-xs text-slate-400 mt-1">Silakan masuk untuk melanjutkan pembelian akun premium.</p>
+      </div>
+
+      <!-- AUTH CARD -->
+      <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative">
+
+        <!-- TAB PILIHAN: MASUK / DAFTAR -->
+        <div class="flex bg-slate-950 p-1 rounded-2xl border border-slate-800 mb-6">
+          <button type="button" id="tabLogin" onclick="switchMode('login')"
+            class="flex-1 py-2.5 text-xs font-bold rounded-xl transition bg-indigo-600 text-white shadow">
+            Masuk
+          </button>
+          <button type="button" id="tabRegister" onclick="switchMode('register')"
+            class="flex-1 py-2.5 text-xs font-bold rounded-xl transition text-slate-400 hover:text-white">
+            Daftar Akun Baru
+          </button>
+        </div>
+
+        <!-- ALERT NOTIFIKASI ERROR / SUKSES -->
+        <div id="alertBox" class="hidden mb-4 p-3 rounded-xl text-xs font-medium border flex items-center gap-2">
+          <i id="alertIcon" class="fa-solid fa-circle-info"></i>
+          <span id="alertMessage"></span>
+        </div>
+
+        <!-- FORM -->
+        <form onsubmit="handleAuthSubmit(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Alamat Email</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500 pointer-events-none text-xs">
+                <i class="fa-solid fa-envelope"></i>
+              </span>
+              <input type="email" id="authEmail" required placeholder="nama@email.com"
+                class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-3 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition placeholder-slate-600">
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between items-center mb-1.5">
+              <label class="block text-xs font-semibold text-slate-300">Kata Sandi</label>
+              <span id="passwordHint" class="text-[10px] text-slate-500">Min. 6 karakter</span>
+            </div>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500 pointer-events-none text-xs">
+                <i class="fa-solid fa-lock"></i>
+              </span>
+              <input type="password" id="authPassword" required minlength="6" placeholder="••••••••"
+                class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-10 py-3 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition placeholder-slate-600">
+              <button type="button" onclick="togglePasswordVisibility()"
+                class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-slate-300 text-xs">
+                <i id="eyeIcon" class="fa-solid fa-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" id="submitBtn"
+            class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 rounded-xl text-sm transition shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 mt-2">
+            <span id="submitBtnText">Masuk Sekarang</span>
+            <i class="fa-solid fa-arrow-right text-xs"></i>
+          </button>
+        </form>
+
+        <!-- FOOTER TEXT DALAM CARD -->
+        <p class="text-center text-xs text-slate-500 mt-6 pt-5 border-t border-slate-800/80">
+          <span id="bottomPromptText">Belum punya akun?</span>
+          <button type="button" onclick="toggleMode()" id="bottomToggleBtn" class="text-indigo-400 hover:text-indigo-300 font-semibold ml-1">
+            Daftar Sekarang
+          </button>
+        </p>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="bg-slate-900 border-t border-slate-800 py-6 text-center text-xs text-slate-500">
+    <p>© 2026 PremiumHub Store. Semua hak cipta dilindungi.</p>
+  </footer>
+
+  <script>
+    // ==================== KONFIGURASI SUPABASE ====================
+    const SUPABASE_URL = "https://nkacjcwucbrwkdxmdryl.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_EgrMoTHK2sNEGZcJMgM2Mg_q0_fs9i_";
+
+    let supabase = null;
+    if (window.supabase && SUPABASE_KEY) {
+      try {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      } catch (e) {
+        console.error("Gagal inisialisasi Supabase:", e);
+      }
+    }
+
+    let currentMode = 'login'; // 'login' atau 'register'
+
+    // Parameter redirect dari halaman utama (misal jika diarahkan dari tombol beli produk)
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetProduct = urlParams.get('product');
+
+    // Jika sudah login sebelumnya, langsung arahkan ke toko
+    const existingUser = localStorage.getItem('premium_user');
+    if (existingUser) {
+      redirectToStore();
+    }
+
+    function redirectToStore() {
+      if (targetProduct) {
+        window.location.href = `index.html?buy=${encodeURIComponent(targetProduct)}`;
+      } else {
+        window.location.href = 'index.html';
+      }
+    }
+
+    function switchMode(mode) {
+      currentMode = mode;
+      const tabLogin = document.getElementById('tabLogin');
+      const tabRegister = document.getElementById('tabRegister');
+      const title = document.getElementById('pageTitle');
+      const sub = document.getElementById('pageSubtitle');
+      const btnText = document.getElementById('submitBtnText');
+      const bottomPrompt = document.getElementById('bottomPromptText');
+      const bottomBtn = document.getElementById('bottomToggleBtn');
+      hideAlert();
+
+      if (mode === 'login') {
+        tabLogin.className = "flex-1 py-2.5 text-xs font-bold rounded-xl transition bg-indigo-600 text-white shadow";
+        tabRegister.className = "flex-1 py-2.5 text-xs font-bold rounded-xl transition text-slate-400 hover:text-white";
+        title.innerText = "Masuk ke Akun Anda";
+        sub.innerText = "Silakan masuk untuk melanjutkan pembelian akun premium.";
+        btnText.innerText = "Masuk Sekarang";
+        bottomPrompt.innerText = "Belum punya akun?";
+        bottomBtn.innerText = "Daftar Sekarang";
+      } else {
+        tabRegister.className = "flex-1 py-2.5 text-xs font-bold rounded-xl transition bg-indigo-600 text-white shadow";
+        tabLogin.className = "flex-1 py-2.5 text-xs font-bold rounded-xl transition text-slate-400 hover:text-white";
+        title.innerText = "Buat Akun Baru";
+        sub.innerText = "Daftarkan akun untuk mulai berlangganan produk premium.";
+        btnText.innerText = "Daftar Akun Baru";
+        bottomPrompt.innerText = "Sudah punya akun?";
+        bottomBtn.innerText = "Masuk di sini";
+      }
+    }
+
+    function toggleMode() {
+      switchMode(currentMode === 'login' ? 'register' : 'login');
+    }
+
+    function togglePasswordVisibility() {
+      const pwdInput = document.getElementById('authPassword');
+      const eye = document.getElementById('eyeIcon');
+      if (pwdInput.type === 'password') {
+        pwdInput.type = 'text';
+        eye.className = 'fa-solid fa-eye-slash';
+      } else {
+        pwdInput.type = 'password';
+        eye.className = 'fa-solid fa-eye';
+      }
+    }
+
+    function showAlert(msg, type = 'error') {
+      const box = document.getElementById('alertBox');
+      const icon = document.getElementById('alertIcon');
+      const text = document.getElementById('alertMessage');
+
+      box.classList.remove('hidden');
+      text.innerText = msg;
+
+      if (type === 'error') {
+        box.className = "mb-4 p-3 rounded-xl text-xs font-medium border flex items-center gap-2 bg-rose-500/10 border-rose-500/30 text-rose-300";
+        icon.className = "fa-solid fa-circle-exclamation text-rose-400";
+      } else {
+        box.className = "mb-4 p-3 rounded-xl text-xs font-medium border flex items-center gap-2 bg-emerald-500/10 border-emerald-500/30 text-emerald-300";
+        icon.className = "fa-solid fa-circle-check text-emerald-400";
+      }
+    }
+
+    function hideAlert() {
+      document.getElementById('alertBox').classList.add('hidden');
+    }
+
+    async function handleAuthSubmit(e) {
+      e.preventDefault();
+      hideAlert();
+
+      const email = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPassword').value;
+      const btn = document.getElementById('submitBtn');
+      const btnText = document.getElementById('submitBtnText');
+
+      btn.disabled = true;
+      btnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Memproses...';
+
+      try {
+        if (supabase) {
+          if (currentMode === 'login') {
+            // PROSES LOGIN
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) {
+              showAlert(error.message === 'Invalid login credentials' ? 'Email atau kata sandi tidak cocok. Silakan cek kembali.' : error.message, 'error');
+              btn.disabled = false;
+              btnText.innerText = "Masuk Sekarang";
+              return;
+            }
+
+            const user = data.user;
+            localStorage.setItem('premium_user', JSON.stringify({
+              email: user.email,
+              id: user.id,
+              joinedAt: user.created_at || new Date().toISOString()
+            }));
+
+            showAlert("Login berhasil! Mengalihkan ke toko...", "success");
+            setTimeout(redirectToStore, 800);
+          } else {
+            // PROSES DAFTAR (REGISTER)
+            const { data, error } = await supabase.auth.signUp({ email, password });
+            if (error) {
+              showAlert(error.message, 'error');
+              btn.disabled = false;
+              btnText.innerText = "Daftar Akun Baru";
+              return;
+            }
+
+            const user = data.user;
+            localStorage.setItem('premium_user', JSON.stringify({
+              email: user ? (user.email || email) : email,
+              id: user ? user.id : 'user_' + Date.now(),
+              joinedAt: new Date().toISOString()
+            }));
+
+            showAlert("Pendaftaran berhasil! Mengalihkan ke toko...", "success");
+            setTimeout(redirectToStore, 800);
+          }
+        } else {
+          // Fallback lokal jika supabase offline
+          localStorage.setItem('premium_user', JSON.stringify({
+            email: email,
+            id: 'local_' + Date.now(),
+            joinedAt: new Date().toISOString()
+          }));
+          showAlert("Berhasil masuk! Mengalihkan...", "success");
+          setTimeout(redirectToStore, 800);
+        }
+      } catch (err) {
+        console.error(err);
+        showAlert("Terjadi kendala jaringan atau sistem, silakan coba lagi.", "error");
+        btn.disabled = false;
+        btnText.innerText = currentMode === 'login' ? "Masuk Sekarang" : "Daftar Akun Baru";
+      }
+    }
+  </script>
+</body>
+
+</html>
