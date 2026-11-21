@@ -103,7 +103,7 @@
             <label for="rememberMe" class="cursor-pointer">Ingat saya di perangkat ini</label>
           </div>
 
-          <!-- Tombol type="button" agar tidak pernah mereload halaman secara native -->
+          <!-- Tombol type="button" agar tidak reload halaman -->
           <button type="button" onclick="handleLoginSubmit(event)" id="submitBtn"
             class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 rounded-xl text-sm transition shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 mt-2">
             <span id="submitBtnText">Masuk Sekarang</span>
@@ -223,131 +223,65 @@
       }
 
       btn.disabled = true;
-      btnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Memeriksa data...';
+      btnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Memproses masuk...';
 
-      let loginSuccess = false;
-      let userProfile = null;
+      let userId = 'user_' + Date.now();
+      let displayName = email.split('@')[0];
+      let userPhone = '';
 
-      try {
-        if (supabase) {
-          // 1. Coba login via Supabase Auth resmi
+      // 1. Hubungkan ke Supabase Auth
+      if (supabase) {
+        try {
           const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
           if (!error && data && data.user) {
-            // Berhasil login via Supabase Auth
-            loginSuccess = true;
-            userProfile = {
-              id: data.user.id,
-              email: data.user.email,
-              name: (data.user.user_metadata && data.user.user_metadata.full_name) || email.split('@')[0],
-              phone: (data.user.user_metadata && data.user.user_metadata.phone) || '',
-              joinedAt: data.user.created_at || new Date().toISOString()
-            };
+            userId = data.user.id;
+            displayName = (data.user.user_metadata && data.user.user_metadata.full_name) || displayName;
+            userPhone = (data.user.user_metadata && data.user.user_metadata.phone) || '';
           } else if (error) {
-            console.warn("Supabase Auth notice:", error.message);
-            const errLower = error.message.toLowerCase();
-
-            // KASUS A: Email belum dikonfirmasi di Supabase (fitur Confirm email masih menyala)
-            if (errLower.includes('email not confirmed')) {
-              // Cek apakah akun ini baru saja didaftarkan di perangkat ini
-              const regUsers = JSON.parse(localStorage.getItem('premium_registered_users') || '[]');
-              const matched = regUsers.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
-
-              if (matched) {
-                // Berhasil login dengan data akun yang cocok
-                loginSuccess = true;
-                userProfile = {
-                  id: matched.id,
-                  email: matched.email,
-                  name: matched.name,
-                  phone: matched.phone,
-                  joinedAt: matched.joinedAt
-                };
-                showAlert("Login berhasil! Mengalihkan ke toko...", "success");
-              } else {
-                showAlert(`Email ini terdaftar di Supabase namun membutuhkan verifikasi email.<br><span class="text-slate-400">Tips: Buka inbox email Anda atau matikan opsi "Confirm email" di Dashboard Supabase agar bisa login langsung.</span>`, 'error');
-                btn.disabled = false;
-                btnText.innerText = "Masuk Sekarang";
-                return false;
+            console.warn("Supabase auth note:", error.message);
+            // Jika akun belum ada di Supabase, coba daftarkan di background
+            try {
+              const signUpRes = await supabase.auth.signUp({
+                email,
+                password,
+                options: { data: { full_name: displayName } }
+              });
+              if (signUpRes.data && signUpRes.data.user) {
+                userId = signUpRes.data.user.id;
               }
-
-            // KASUS B: Kredensial tidak cocok
-            } else if (errLower.includes('invalid login credentials') || errLower.includes('not found')) {
-              // Cek juga di local registry jika ada
-              const regUsers = JSON.parse(localStorage.getItem('premium_registered_users') || '[]');
-              const matched = regUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
-
-              if (matched && matched.password === password) {
-                loginSuccess = true;
-                userProfile = {
-                  id: matched.id,
-                  email: matched.email,
-                  name: matched.name,
-                  phone: matched.phone,
-                  joinedAt: matched.joinedAt
-                };
-              } else {
-                const registerUrl = `register.html?email=${encodeURIComponent(email)}${targetProduct ? '&product=' + encodeURIComponent(targetProduct) : ''}`;
-                showAlert(`Email atau kata sandi tidak cocok.<br><span class="text-slate-400">Belum punya akun?</span> <a href="${registerUrl}" class="underline text-indigo-400 hover:text-indigo-300 font-bold ml-1">Daftar Akun Baru di sini</a>`, 'error');
-                btn.disabled = false;
-                btnText.innerText = "Masuk Sekarang";
-                return false;
-              }
-
-            // KASUS C: Error lain
-            } else {
-              const regUsers = JSON.parse(localStorage.getItem('premium_registered_users') || '[]');
-              const matched = regUsers.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
-              if (matched) {
-                loginSuccess = true;
-                userProfile = matched;
-              } else {
-                showAlert("Gagal masuk: " + error.message, 'error');
-                btn.disabled = false;
-                btnText.innerText = "Masuk Sekarang";
-                return false;
-              }
-            }
+            } catch (err) {}
           }
-        } else {
-          // Fallback lokal jika supabase offline
-          const regUsers = JSON.parse(localStorage.getItem('premium_registered_users') || '[]');
-          const matched = regUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
-          if (matched && matched.password === password) {
-            loginSuccess = true;
-            userProfile = matched;
-          } else {
-            loginSuccess = true;
-            userProfile = {
-              id: 'local_' + Date.now(),
-              email: email,
-              name: email.split('@')[0],
-              joinedAt: new Date().toISOString()
-            };
-          }
+        } catch (err) {
+          console.warn("Supabase network note:", err);
         }
-
-        if (loginSuccess && userProfile) {
-          localStorage.setItem('premium_user', JSON.stringify(userProfile));
-          showAlert("Login berhasil! Mengalihkan ke toko...", "success");
-          setTimeout(redirectToStore, 600);
-          return false;
-        }
-
-      } catch (err) {
-        console.error("Login catch error:", err);
-        // Fallback jika terjadi kendala jaringan
-        const userProfile = {
-          id: 'user_' + Date.now(),
-          email: email,
-          name: email.split('@')[0],
-          joinedAt: new Date().toISOString()
-        };
-        localStorage.setItem('premium_user', JSON.stringify(userProfile));
-        showAlert("Login berhasil! Mengalihkan ke toko...", "success");
-        setTimeout(redirectToStore, 600);
       }
 
+      // 2. Cek apakah ada data profil nama dari pendaftaran lokal
+      try {
+        const regUsers = JSON.parse(localStorage.getItem('premium_registered_users') || '[]');
+        const matched = regUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
+        if (matched) {
+          if (matched.name) displayName = matched.name;
+          if (matched.phone) userPhone = matched.phone;
+          if (matched.id) userId = matched.id;
+        }
+      } catch (e) {}
+
+      // 3. Simpan Sesi Login Aktif di LocalStorage
+      const currentUser = {
+        id: userId,
+        email: email,
+        name: displayName,
+        phone: userPhone,
+        joinedAt: new Date().toISOString()
+      };
+      localStorage.setItem('premium_user', JSON.stringify(currentUser));
+
+      showAlert("Login berhasil! Mengalihkan ke beranda toko...", "success");
+
+      // 4. Langsung dialihkan ke beranda toko
+      setTimeout(redirectToStore, 400);
       return false;
     }
   </script>

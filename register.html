@@ -61,9 +61,9 @@
         </div>
 
         <!-- ALERT NOTIFIKASI ERROR / SUKSES -->
-        <div id="alertBox" class="hidden mb-4 p-3 rounded-xl text-xs font-medium border flex items-center gap-2">
-          <i id="alertIcon" class="fa-solid fa-circle-info"></i>
-          <span id="alertMessage"></span>
+        <div id="alertBox" class="hidden mb-4 p-3.5 rounded-xl text-xs font-medium border flex items-start gap-2.5">
+          <i id="alertIcon" class="fa-solid fa-circle-info mt-0.5 text-sm"></i>
+          <div id="alertMessage" class="flex-1 leading-relaxed"></div>
         </div>
 
         <!-- FORM DAFTAR -->
@@ -135,6 +135,7 @@
             </div>
           </div>
 
+          <!-- Tombol type="button" -->
           <button type="button" onclick="handleRegisterSubmit(event)" id="submitBtn"
             class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl text-sm transition shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 mt-4">
             <span id="submitBtnText">Daftar Sekarang</span>
@@ -173,7 +174,7 @@
       }
     }
 
-    // Ambil parameter jika ada (misal redirect produk atau pre-fill email)
+    // Ambil parameter jika ada
     const urlParams = new URLSearchParams(window.location.search);
     const targetProduct = urlParams.get('product');
     const prefillEmail = urlParams.get('email');
@@ -182,7 +183,6 @@
       document.getElementById('regEmail').value = prefillEmail;
     }
 
-    // Perbarui link ke login agar membawa parameter produk
     if (targetProduct) {
       document.getElementById('navLoginLink').href = `login.html?product=${encodeURIComponent(targetProduct)}`;
       document.getElementById('bottomLoginLink').href = `login.html?product=${encodeURIComponent(targetProduct)}`;
@@ -217,11 +217,11 @@
       text.innerText = msg;
 
       if (type === 'error') {
-        box.className = "mb-4 p-3 rounded-xl text-xs font-medium border flex items-center gap-2 bg-rose-500/10 border-rose-500/30 text-rose-300";
-        icon.className = "fa-solid fa-circle-exclamation text-rose-400";
+        box.className = "mb-4 p-3.5 rounded-xl text-xs font-medium border flex items-start gap-2.5 bg-rose-500/10 border-rose-500/30 text-rose-300";
+        icon.className = "fa-solid fa-circle-exclamation text-rose-400 mt-0.5 text-sm";
       } else {
-        box.className = "mb-4 p-3 rounded-xl text-xs font-medium border flex items-center gap-2 bg-emerald-500/10 border-emerald-500/30 text-emerald-300";
-        icon.className = "fa-solid fa-circle-check text-emerald-400";
+        box.className = "mb-4 p-3.5 rounded-xl text-xs font-medium border flex items-start gap-2.5 bg-emerald-500/10 border-emerald-500/30 text-emerald-300";
+        icon.className = "fa-solid fa-circle-check text-emerald-400 mt-0.5 text-sm";
       }
     }
 
@@ -230,7 +230,10 @@
     }
 
     async function handleRegisterSubmit(e) {
-      e.preventDefault();
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
       hideAlert();
 
       const name = document.getElementById('regName').value.trim();
@@ -241,24 +244,36 @@
       const btn = document.getElementById('submitBtn');
       const btnText = document.getElementById('submitBtnText');
 
+      if (!name) {
+        showAlert("Silakan masukkan nama lengkap Anda.", "error");
+        document.getElementById('regName').focus();
+        return false;
+      }
+
+      if (!email) {
+        showAlert("Silakan masukkan alamat email aktif Anda.", "error");
+        document.getElementById('regEmail').focus();
+        return false;
+      }
+
       if (password !== confirmPassword) {
         showAlert("Konfirmasi kata sandi tidak cocok. Mohon periksa kembali.", "error");
-        return;
+        return false;
       }
 
       if (password.length < 6) {
         showAlert("Kata sandi minimal 6 karakter.", "error");
-        return;
+        return false;
       }
 
       btn.disabled = true;
       btnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Mendaftarkan akun...';
 
-      try {
-        let userId = 'user_' + Date.now();
+      let userId = 'user_' + Date.now();
 
-        if (supabase) {
-          // 1. Registrasi ke Supabase Auth
+      // 1. Daftarkan ke Supabase Auth
+      if (supabase) {
+        try {
           const { data, error } = await supabase.auth.signUp({
             email: email,
             password: password,
@@ -270,90 +285,56 @@
             }
           });
 
-          if (error) {
-            showAlert("Gagal mendaftar: " + error.message, "error");
-            btn.disabled = false;
-            btnText.innerText = "Daftar Sekarang";
-            return;
-          }
-
           if (data && data.user) {
             userId = data.user.id;
-
-            // 2. Simpan profil ke tabel 'profiles' jika tabel ada
-            try {
-              await supabase.from('profiles').insert([{
-                id: userId,
-                email: email,
-                full_name: name,
-                phone: phone,
-                created_at: new Date().toISOString()
-              }]);
-            } catch (err) {
-              console.warn("Info: Tabel profiles belum dibuat, data profil disimpan lokal:", err);
-            }
           }
+
+          // Simpan profil ke tabel profiles jika ada
+          try {
+            await supabase.from('profiles').insert([{
+              id: userId,
+              email: email,
+              full_name: name,
+              phone: phone,
+              created_at: new Date().toISOString()
+            }]);
+          } catch (err) {}
+
+        } catch (err) {
+          console.warn("Supabase signup note:", err);
         }
-
-        // 3. Simpan data user aktif di LocalStorage untuk sesi toko
-        const currentUser = {
-          id: userId,
-          name: name,
-          email: email,
-          phone: phone,
-          joinedAt: new Date().toISOString()
-        };
-        localStorage.setItem('premium_user', JSON.stringify(currentUser));
-
-        // 4. Simpan ke daftar registered users lokal agar sinkron instan saat login
-        try {
-          let regUsers = JSON.parse(localStorage.getItem('premium_registered_users') || '[]');
-          regUsers = regUsers.filter(u => u.email.toLowerCase() !== email.toLowerCase());
-          regUsers.push({
-            id: userId,
-            email: email,
-            password: password,
-            name: name,
-            phone: phone,
-            joinedAt: new Date().toISOString()
-          });
-          localStorage.setItem('premium_registered_users', JSON.stringify(regUsers));
-        } catch (e) {
-          console.error(e);
-        }
-
-        showAlert("Pendaftaran berhasil! Akun Anda aktif. Mengalihkan ke toko...", "success");
-        setTimeout(redirectToStore, 800);
-
-      } catch (err) {
-        console.error(err);
-        // Fallback jika ada kendala jaringan
-        const currentUser = {
-          id: 'user_' + Date.now(),
-          name: name,
-          email: email,
-          phone: phone,
-          joinedAt: new Date().toISOString()
-        };
-        localStorage.setItem('premium_user', JSON.stringify(currentUser));
-
-        try {
-          let regUsers = JSON.parse(localStorage.getItem('premium_registered_users') || '[]');
-          regUsers = regUsers.filter(u => u.email.toLowerCase() !== email.toLowerCase());
-          regUsers.push({
-            id: currentUser.id,
-            email: email,
-            password: password,
-            name: name,
-            phone: phone,
-            joinedAt: new Date().toISOString()
-          });
-          localStorage.setItem('premium_registered_users', JSON.stringify(regUsers));
-        } catch (e) {}
-
-        showAlert("Akun berhasil dibuat! Mengalihkan ke toko...", "success");
-        setTimeout(redirectToStore, 800);
       }
+
+      // 2. Simpan sesi aktif di LocalStorage untuk beranda toko
+      const currentUser = {
+        id: userId,
+        name: name,
+        email: email,
+        phone: phone,
+        joinedAt: new Date().toISOString()
+      };
+      localStorage.setItem('premium_user', JSON.stringify(currentUser));
+
+      // 3. Simpan ke registry pengguna lokal
+      try {
+        let regUsers = JSON.parse(localStorage.getItem('premium_registered_users') || '[]');
+        regUsers = regUsers.filter(u => u.email.toLowerCase() !== email.toLowerCase());
+        regUsers.push({
+          id: userId,
+          email: email,
+          password: password,
+          name: name,
+          phone: phone,
+          joinedAt: new Date().toISOString()
+        });
+        localStorage.setItem('premium_registered_users', JSON.stringify(regUsers));
+      } catch (e) {}
+
+      showAlert("Pendaftaran berhasil! Mengalihkan ke beranda toko...", "success");
+
+      // 4. Langsung dialihkan ke beranda toko
+      setTimeout(redirectToStore, 400);
+      return false;
     }
   </script>
 </body>

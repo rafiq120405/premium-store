@@ -513,13 +513,15 @@
           currentUser = { 
             email: session.user.email, 
             id: session.user.id, 
+            name: (session.user.user_metadata && session.user.user_metadata.full_name) || (currentUser ? currentUser.name : session.user.email.split('@')[0]),
+            phone: (session.user.user_metadata && session.user.user_metadata.phone) || (currentUser ? currentUser.phone : ''),
             joinedAt: session.user.created_at 
           };
           localStorage.setItem('premium_user', JSON.stringify(currentUser));
           updateNavbar();
         }
       } catch (e) {
-        console.error("Gagal memeriksa sesi Supabase:", e);
+        console.warn("Info sesi Supabase:", e);
       }
     }
 
@@ -743,10 +745,11 @@ Mohon infonya ya, terima kasih!`;
     }
 
     // INISIALISASI HALAMAN
-    loadProductsFromSupabase();
+    renderProducts();
     updateNavbar();
-    checkSupabaseSession();
     checkRedirectParams();
+    loadProductsFromSupabase();
+    checkSupabaseSession();
   </script>
 </body>
 
