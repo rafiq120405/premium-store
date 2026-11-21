@@ -35,10 +35,12 @@
 
       <div id="navAuthArea" class="flex items-center space-x-2">
         <!-- Tampilan ini akan berubah otomatis via JS ketika sudah login -->
-        <a href="login.html" class="text-slate-300 hover:text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition">
+        <a href="login.html"
+          class="text-slate-300 hover:text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition">
           Masuk
         </a>
-        <a href="register.html" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center space-x-1.5 shadow-lg shadow-indigo-600/20">
+        <a href="register.html"
+          class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center space-x-1.5 shadow-lg shadow-indigo-600/20">
           <i class="fa-solid fa-user-plus text-xs"></i>
           <span>Daftar</span>
         </a>
@@ -76,45 +78,8 @@
     <p class="mt-1">Mendukung pembayaran: BCA, Mandiri, BRI, BNI, Dana, GoPay, OVO, ShopeePay via QRIS.</p>
   </footer>
 
-  <!-- ==================== MODAL LOGIN / REGISTER ==================== -->
-  <div id="authModal"
-    class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 relative">
-      <button onclick="closeModal('authModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white">
-        <i class="fa-solid fa-xmark text-lg"></i>
-      </button>
-
-      <div class="text-center mb-6">
-        <h3 class="text-xl font-bold text-white" id="authTitle">Login Akun</h3>
-        <p class="text-xs text-slate-400 mt-1">Silakan masuk untuk melanjutkan pembelian akun premium.</p>
-      </div>
-
-      <form onsubmit="handleAuthSubmit(event)" class="space-y-4">
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Email / No. WhatsApp</label>
-          <input type="text" id="authEmail" required placeholder="nama@email.com atau 0812xxxx"
-            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm focus:border-indigo-500 outline-none">
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Kata Sandi</label>
-          <input type="password" id="authPassword" required placeholder="••••••••"
-            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm focus:border-indigo-500 outline-none">
-        </div>
-        <button type="submit"
-          class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-xl text-sm transition">
-          Lanjutkan Masuk
-        </button>
-      </form>
-
-      <p class="text-center text-xs text-slate-500 mt-4">
-        Belum punya akun? Akun baru akan <b>otomatis dibuat</b> saat Anda memasukkan email & password di atas.
-      </p>
-    </div>
-  </div>
-
   <!-- ==================== MODAL OPSI PEMBELIAN ==================== -->
-  <div id="optionModal"
-    class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 items-center justify-center p-4">
+  <div id="optionModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 items-center justify-center p-4">
     <div
       class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 relative max-h-[90vh] overflow-y-auto">
       <button onclick="closeModal('optionModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white">
@@ -162,8 +127,7 @@
   </div>
 
   <!-- ==================== MODAL QRIS CHECKOUT ==================== -->
-  <div id="qrisModal"
-    class="fixed inset-0 bg-black/75 backdrop-blur-sm hidden z-50 items-center justify-center p-4">
+  <div id="qrisModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm hidden z-50 items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-6 text-center relative">
       <button onclick="closeModal('qrisModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white">
         <i class="fa-solid fa-xmark text-lg"></i>
@@ -208,9 +172,9 @@
   </div>
 
   <!-- ==================== MODAL RIWAYAT PESANAN ==================== -->
-  <div id="ordersModal"
-    class="fixed inset-0 bg-black/75 backdrop-blur-sm hidden z-50 items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 relative max-h-[85vh] flex flex-col">
+  <div id="ordersModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm hidden z-50 items-center justify-center p-4">
+    <div
+      class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 relative max-h-[85vh] flex flex-col">
       <div class="flex items-center justify-between pb-4 border-b border-slate-800 mb-4">
         <div class="flex items-center space-x-2.5">
           <div class="w-9 h-9 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center">
@@ -239,10 +203,10 @@
     const SUPABASE_URL = "https://nkacjcwucbrwkdxmdryl.supabase.co";
     const SUPABASE_KEY = "sb_publishable_EgrMoTHK2sNEGZcJMgM2Mg_q0_fs9i_";
 
-    let supabase = null;
+    let sb = null;
     if (window.supabase && SUPABASE_KEY) {
       try {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         console.log("✅ Supabase berhasil diinisialisasi dengan URL:", SUPABASE_URL);
       } catch (err) {
         console.error("Gagal inisialisasi Supabase:", err);
@@ -328,7 +292,7 @@
     ];
 
     // 2. STATE APLIKASI
-    let currentUser = JSON.parse(localStorage.getItem('premium_user')) || null;
+    let currentUser = null;
     let activeProduct = null;
     let selectedVariantIndex = 0;
     let pendingPurchaseProdId = null;
@@ -416,84 +380,23 @@
       }
     }
 
-    // PROSES AUTH LOGIN / DAFTAR
-    async function handleAuthSubmit(e) {
-      e.preventDefault();
-      const email = document.getElementById("authEmail").value.trim();
-      const password = document.getElementById("authPassword").value;
-      const submitBtn = e.target.querySelector('button[type="submit"]');
-      const originalBtnText = submitBtn.innerHTML;
-
-      // Jika Supabase aktif, gunakan Supabase Auth
-      if (supabase) {
-        try {
-          submitBtn.disabled = true;
-          submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Memproses...';
-
-          // Coba login terlebih dahulu
-          let { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
-          // Jika akun belum terdaftar / invalid, coba registrasi otomatis
-          if (error) {
-            const signUpRes = await supabase.auth.signUp({ email, password });
-            if (signUpRes.error) {
-              alert("Gagal autentikasi Supabase: " + (signUpRes.error.message || error.message));
-              submitBtn.disabled = false;
-              submitBtn.innerHTML = originalBtnText;
-              return;
-            }
-            data = signUpRes.data;
-          }
-
-          if (data && data.user) {
-            currentUser = { 
-              email: data.user.email || email, 
-              id: data.user.id, 
-              joinedAt: data.user.created_at || new Date().toISOString() 
-            };
-            localStorage.setItem('premium_user', JSON.stringify(currentUser));
-          }
-        } catch (err) {
-          console.error("Supabase Auth error:", err);
-          alert("Terjadi kendala saat login ke Supabase.");
-        } finally {
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = originalBtnText;
-        }
-      } else {
-        // Fallback penyimpanan lokal jika Anon Key belum diisi
-        currentUser = { email: email, joinedAt: new Date().toISOString() };
-        localStorage.setItem('premium_user', JSON.stringify(currentUser));
-      }
-
-      updateNavbar();
-      closeModal('authModal');
-
-      // Jika user sedang berniat membeli produk sebelum diminta login, lanjutkan langsung:
-      if (pendingPurchaseProdId) {
-        openOptionModal(pendingPurchaseProdId);
-        pendingPurchaseProdId = null;
-      }
-    }
-
     async function logout() {
-      if (supabase) {
+      if (sb) {
         try {
-          await supabase.auth.signOut();
+          await sb.auth.signOut();
         } catch (e) {
           console.error("Supabase sign out error:", e);
         }
       }
       currentUser = null;
-      localStorage.removeItem('premium_user');
       updateNavbar();
     }
 
     // SIMPAN PESANAN KE SUPABASE (JIKA AKTIF)
     async function saveOrderToSupabase(orderData) {
-      if (!supabase) return;
+      if (!sb) return;
       try {
-        const { data, error } = await supabase.from('orders').insert([orderData]);
+        const { data, error } = await sb.from('orders').insert([orderData]);
         if (error) {
           console.warn("Info Supabase: Data pesanan belum tersimpan ke tabel 'orders' (pastikan tabel sudah dibuat):", error.message);
         } else {
@@ -504,25 +407,23 @@
       }
     }
 
-    // PERIKSA SESSION LOGIN SUPABASE SAAT HALAMAN DIBUKA
-    async function checkSupabaseSession() {
-      if (!supabase) return;
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session && session.user) {
-          currentUser = { 
-            email: session.user.email, 
-            id: session.user.id, 
-            name: (session.user.user_metadata && session.user.user_metadata.full_name) || (currentUser ? currentUser.name : session.user.email.split('@')[0]),
-            phone: (session.user.user_metadata && session.user.user_metadata.phone) || (currentUser ? currentUser.phone : ''),
-            joinedAt: session.user.created_at 
-          };
-          localStorage.setItem('premium_user', JSON.stringify(currentUser));
-          updateNavbar();
-        }
-      } catch (e) {
-        console.warn("Info sesi Supabase:", e);
+    // SESI LOGIN DIAMBIL DARI SUPABASE (bukan localStorage buatan sendiri)
+    function applySession(session) {
+      if (session && session.user) {
+        const u = session.user, md = u.user_metadata || {};
+        currentUser = { email: u.email, id: u.id, name: md.full_name || u.email.split('@')[0], phone: md.phone || '', joinedAt: u.created_at };
+      } else {
+        currentUser = null;
       }
+      updateNavbar();
+    }
+    async function checkSupabaseSession() {
+      if (!sb) return;
+      try {
+        const { data: { session } } = await sb.auth.getSession();
+        applySession(session);
+        sb.auth.onAuthStateChange((_e, s) => applySession(s));
+      } catch (e) { console.warn("Info sesi Supabase:", e); }
     }
 
     // TAMPILKAN MODAL PILIHAN VARIAN PEMBELIAN
@@ -629,13 +530,13 @@ Saya sudah melakukan transfer QRIS. Mohon segera diproses ya!`;
     }
 
     // UTILITY BUKA / TUTUP MODAL
-    function openModal(id) { 
+    function openModal(id) {
       const el = document.getElementById(id);
       if (!el) return;
       el.classList.remove('hidden');
       el.classList.add('flex');
     }
-    function closeModal(id) { 
+    function closeModal(id) {
       const el = document.getElementById(id);
       if (!el) return;
       el.classList.add('hidden');
@@ -649,9 +550,9 @@ Saya sudah melakukan transfer QRIS. Mohon segera diproses ya!`;
       container.innerHTML = `<div class="text-center py-8 text-slate-500"><i class="fa-solid fa-spinner fa-spin text-xl mb-2 text-indigo-400"></i><p>Memuat data transaksi...</p></div>`;
 
       let orders = [];
-      if (supabase && currentUser) {
+      if (sb && currentUser) {
         try {
-          const { data, error } = await supabase
+          const { data, error } = await sb
             .from('orders')
             .select('*')
             .eq('customer_email', currentUser.email)
@@ -718,9 +619,9 @@ Mohon infonya ya, terima kasih!`;
 
     // AMBIL DATA PRODUK DARI SUPABASE JIKA ADA
     async function loadProductsFromSupabase() {
-      if (supabase) {
+      if (sb) {
         try {
-          const { data, error } = await supabase.from('products').select('*');
+          const { data, error } = await sb.from('products').select('*');
           if (!error && data && data.length > 0) {
             PRODUCTS = data;
             console.log("Produk berhasil dimuat dari Supabase:", data.length, "item");
@@ -747,9 +648,8 @@ Mohon infonya ya, terima kasih!`;
     // INISIALISASI HALAMAN
     renderProducts();
     updateNavbar();
-    checkRedirectParams();
     loadProductsFromSupabase();
-    checkSupabaseSession();
+    checkSupabaseSession().then(checkRedirectParams);
   </script>
 </body>
 
