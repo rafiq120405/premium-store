@@ -67,7 +67,7 @@
         </div>
 
         <!-- FORM LOGIN -->
-        <form id="loginForm" onsubmit="event.preventDefault(); handleLoginSubmit(event); return false;" class="space-y-4">
+        <form id="loginForm" onsubmit="return handleLoginSubmit(event)" class="space-y-4">
           <div>
             <label class="block text-xs font-semibold text-slate-300 mb-1.5">Alamat Email</label>
             <div class="relative">
@@ -103,9 +103,9 @@
             <label for="rememberMe" class="cursor-pointer">Ingat saya di perangkat ini</label>
           </div>
 
-          <!-- Tombol type="button" agar tidak reload halaman -->
-          <button type="button" onclick="handleLoginSubmit(event)" id="submitBtn"
-            class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 rounded-xl text-sm transition shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 mt-2">
+          <!-- Tombol type="submit" -->
+          <button type="submit" id="submitBtn"
+            class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 rounded-xl text-sm transition shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 mt-2 cursor-pointer">
             <span id="submitBtnText">Masuk Sekarang</span>
             <i class="fa-solid fa-arrow-right text-xs"></i>
           </button>
@@ -229,28 +229,20 @@
       let displayName = email.split('@')[0];
       let userPhone = '';
 
-      // 1. Hubungkan ke Supabase Auth
+      // 1. Hubungkan ke Supabase Auth dengan Timeout Guard 1.2s
       if (supabase) {
         try {
-          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('timeout')), 1200)
+          );
 
-          if (!error && data && data.user) {
-            userId = data.user.id;
-            displayName = (data.user.user_metadata && data.user.user_metadata.full_name) || displayName;
-            userPhone = (data.user.user_metadata && data.user.user_metadata.phone) || '';
-          } else if (error) {
-            console.warn("Supabase auth note:", error.message);
-            // Jika akun belum ada di Supabase, coba daftarkan di background
-            try {
-              const signUpRes = await supabase.auth.signUp({
-                email,
-                password,
-                options: { data: { full_name: displayName } }
-              });
-              if (signUpRes.data && signUpRes.data.user) {
-                userId = signUpRes.data.user.id;
-              }
-            } catch (err) {}
+          const loginPromise = supabase.auth.signInWithPassword({ email, password });
+          const res = await Promise.race([loginPromise, timeoutPromise]);
+
+          if (res && !res.error && res.data && res.data.user) {
+            userId = res.data.user.id;
+            displayName = (res.data.user.user_metadata && res.data.user.user_metadata.full_name) || displayName;
+            userPhone = (res.data.user.user_metadata && res.data.user.user_metadata.phone) || '';
           }
         } catch (err) {
           console.warn("Supabase network note:", err);
