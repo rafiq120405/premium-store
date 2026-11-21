@@ -33,12 +33,14 @@
           class="font-extrabold text-xl tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">PremiumHub</span>
       </div>
 
-      <div id="navAuthArea" class="flex items-center space-x-3">
+      <div id="navAuthArea" class="flex items-center space-x-2">
         <!-- Tampilan ini akan berubah otomatis via JS ketika sudah login -->
-        <a href="login.html"
-          class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2 rounded-xl text-sm font-semibold transition flex items-center space-x-2 shadow-lg shadow-indigo-600/20">
-          <i class="fa-solid fa-user"></i>
-          <span>Masuk / Daftar</span>
+        <a href="login.html" class="text-slate-300 hover:text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition">
+          Masuk
+        </a>
+        <a href="register.html" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center space-x-1.5 shadow-lg shadow-indigo-600/20">
+          <i class="fa-solid fa-user-plus text-xs"></i>
+          <span>Daftar</span>
         </a>
       </div>
     </div>
@@ -205,6 +207,31 @@
     </div>
   </div>
 
+  <!-- ==================== MODAL RIWAYAT PESANAN ==================== -->
+  <div id="ordersModal"
+    class="fixed inset-0 bg-black/75 backdrop-blur-sm hidden z-50 items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 relative max-h-[85vh] flex flex-col">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-800 mb-4">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-9 h-9 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center">
+            <i class="fa-solid fa-receipt"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white">Riwayat Pesanan Saya</h3>
+            <p class="text-xs text-slate-400">Daftar transaksi yang tersimpan di sistem</p>
+          </div>
+        </div>
+        <button onclick="closeModal('ordersModal')" class="text-slate-400 hover:text-white p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div id="ordersList" class="flex-grow overflow-y-auto space-y-3 pr-1 text-xs">
+        <!-- List pesanan dirender via JS -->
+      </div>
+    </div>
+  </div>
+
   <!-- SCRIPT LOGIKA APLIKASI -->
   <script>
     // ==================== 0. KONFIGURASI SUPABASE ====================
@@ -345,19 +372,35 @@
     function updateNavbar() {
       const area = document.getElementById("navAuthArea");
       if (currentUser) {
+        const displayName = currentUser.name || currentUser.email.split('@')[0];
         area.innerHTML = `
-          <div class="flex items-center space-x-3 bg-slate-800/70 border border-slate-700 px-3 py-1.5 rounded-xl text-xs">
-            <i class="fa-solid fa-circle-user text-indigo-400 text-base"></i>
-            <span class="font-medium text-slate-200">${currentUser.email}</span>
-            <button onclick="logout()" class="text-rose-400 hover:text-rose-300 ml-2 font-semibold">Keluar</button>
+          <div class="flex items-center space-x-2 sm:space-x-3">
+            <button onclick="openOrdersModal()" class="text-xs bg-slate-800 hover:bg-slate-700 text-indigo-300 px-3 py-2 rounded-xl border border-slate-700 flex items-center space-x-1.5 transition">
+              <i class="fa-solid fa-receipt"></i>
+              <span class="hidden sm:inline">Pesanan Saya</span>
+            </button>
+            <div class="flex items-center space-x-2 bg-slate-800/80 border border-slate-700 px-3 py-1.5 rounded-xl text-xs">
+              <div class="w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-[10px] uppercase">
+                ${displayName[0]}
+              </div>
+              <span class="font-medium text-slate-200 hidden md:inline max-w-[120px] truncate">${displayName}</span>
+              <button onclick="logout()" class="text-rose-400 hover:text-rose-300 ml-1 font-semibold" title="Keluar">
+                <i class="fa-solid fa-right-from-bracket"></i>
+              </button>
+            </div>
           </div>
         `;
       } else {
         area.innerHTML = `
-          <a href="login.html" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2 rounded-xl text-sm font-semibold transition flex items-center space-x-2 shadow-lg shadow-indigo-600/20">
-            <i class="fa-solid fa-user"></i>
-            <span>Masuk / Daftar</span>
-          </a>
+          <div class="flex items-center space-x-2">
+            <a href="login.html" class="text-slate-300 hover:text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition">
+              Masuk
+            </a>
+            <a href="register.html" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center space-x-1.5 shadow-lg shadow-indigo-600/20">
+              <i class="fa-solid fa-user-plus text-xs"></i>
+              <span>Daftar</span>
+            </a>
+          </div>
         `;
       }
     }
@@ -539,7 +582,7 @@
       document.getElementById("qrisImage").src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrisData)}`;
 
       // Simpan ke Supabase jika tabel orders tersedia
-      saveOrderToSupabase({
+      const orderData = {
         order_id: "#" + invNumber,
         product: activeProduct.name,
         variant: variant.name,
@@ -548,7 +591,17 @@
         notes: notes,
         status: "pending_payment",
         created_at: new Date().toISOString()
-      });
+      };
+      saveOrderToSupabase(orderData);
+
+      // Simpan juga ke LocalStorage agar langsung dapat dilihat di Riwayat Pesanan
+      try {
+        let localOrders = JSON.parse(localStorage.getItem('premium_orders') || '[]');
+        localOrders.unshift(orderData);
+        localStorage.setItem('premium_orders', JSON.stringify(localOrders));
+      } catch (err) {
+        console.error("Gagal simpan lokal:", err);
+      }
 
       openModal('qrisModal');
     }
@@ -585,6 +638,80 @@ Saya sudah melakukan transfer QRIS. Mohon segera diproses ya!`;
       if (!el) return;
       el.classList.add('hidden');
       el.classList.remove('flex');
+    }
+
+    // BUKA MODAL RIWAYAT PESANAN
+    async function openOrdersModal() {
+      openModal('ordersModal');
+      const container = document.getElementById('ordersList');
+      container.innerHTML = `<div class="text-center py-8 text-slate-500"><i class="fa-solid fa-spinner fa-spin text-xl mb-2 text-indigo-400"></i><p>Memuat data transaksi...</p></div>`;
+
+      let orders = [];
+      if (supabase && currentUser) {
+        try {
+          const { data, error } = await supabase
+            .from('orders')
+            .select('*')
+            .eq('customer_email', currentUser.email)
+            .order('created_at', { ascending: false });
+
+          if (!error && data && data.length > 0) {
+            orders = data;
+          }
+        } catch (e) {
+          console.warn("Gagal mengambil orders dari Supabase:", e);
+        }
+      }
+
+      // Ambil juga dari local storage
+      const localOrders = JSON.parse(localStorage.getItem('premium_orders') || '[]');
+      if (orders.length === 0) {
+        orders = localOrders.filter(o => !currentUser || o.customer_email === currentUser.email || o.customer_email === "Tamu");
+      }
+
+      if (orders.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-12 text-slate-500">
+            <i class="fa-solid fa-box-open text-4xl mb-3 text-slate-600"></i>
+            <p class="font-medium text-slate-400">Belum ada riwayat transaksi.</p>
+            <p class="text-[11px] text-slate-500 mt-1">Pesanan Anda akan tercatat otomatis di sini dan database online.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = orders.map(ord => `
+        <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-mono font-bold text-indigo-400">${ord.order_id}</span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${ord.status === 'success' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}">
+              ${ord.status === 'success' ? 'Selesai / Aktif' : 'Menunggu Konfirmasi'}
+            </span>
+          </div>
+          <div class="flex justify-between items-center text-slate-300">
+            <span class="font-medium">${ord.product} (${ord.variant})</span>
+            <span class="font-bold text-white">${formatRp(Number(ord.price))}</span>
+          </div>
+          <div class="flex justify-between items-center text-[11px] text-slate-500 pt-1.5 border-t border-slate-900">
+            <span>${new Date(ord.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+            <button onclick="contactAdminForOrder('${ord.order_id}', '${ord.product}', '${ord.variant}', '${ord.price}')" class="text-emerald-400 hover:text-emerald-300 font-semibold flex items-center gap-1">
+              <i class="fa-brands fa-whatsapp"></i> Chat Admin
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function contactAdminForOrder(orderId, prodName, variantName, price) {
+      const msg = `Halo Admin PremiumHub, saya mau cek/konfirmasi pesanan:
+- Order ID: ${orderId}
+- Produk: ${prodName} (${variantName})
+- Total: ${formatRp(Number(price))}
+- Email: ${currentUser ? currentUser.email : '-'}
+
+Mohon infonya ya, terima kasih!`;
+      const waUrl = `https://wa.me/${WA_ADMIN_NUMBER}?text=${encodeURIComponent(msg)}`;
+      window.open(waUrl, '_blank');
     }
 
     // AMBIL DATA PRODUK DARI SUPABASE JIKA ADA

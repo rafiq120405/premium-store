@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daftar Akun Baru - PremiumHub</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Supabase JS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+  </style>
+</head>
+
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between">
+
+  <!-- TOP HEADER / BACK TO HOME -->
+  <div class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
+    <a href="index.html" class="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white transition font-medium">
+      <i class="fa-solid fa-arrow-left"></i>
+      <span>Kembali ke Beranda</span>
+    </a>
+  </div>
+
+  <!-- MAIN REGISTER CONTAINER -->
+  <div class="flex-grow flex items-center justify-center px-4 py-6">
+    <div class="w-full max-w-md">
+
+      <!-- LOGO & BRAND -->
+      <div class="text-center mb-6">
+        <a href="index.html" class="inline-flex items-center space-x-2">
+          <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center font-black text-2xl shadow-lg shadow-indigo-500/30">
+            P
+          </div>
+          <span class="font-extrabold text-2xl tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">PremiumHub</span>
+        </a>
+        <h2 class="text-xl font-bold text-white mt-3">Buat Akun Baru</h2>
+        <p class="text-xs text-slate-400 mt-1">Daftarkan akun Anda untuk transaksi cepat dan garansi penuh.</p>
+      </div>
+
+      <!-- AUTH CARD -->
+      <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative">
+
+        <!-- TAB NAVIGASI: MASUK / DAFTAR -->
+        <div class="flex bg-slate-950 p-1 rounded-2xl border border-slate-800 mb-6">
+          <a id="navLoginLink" href="login.html"
+            class="flex-1 py-2.5 text-xs font-bold rounded-xl transition text-slate-400 hover:text-white text-center">
+            Masuk
+          </a>
+          <div class="flex-1 py-2.5 text-xs font-bold rounded-xl transition bg-indigo-600 text-white shadow text-center cursor-default">
+            Daftar Akun Baru
+          </div>
+        </div>
+
+        <!-- ALERT NOTIFIKASI ERROR / SUKSES -->
+        <div id="alertBox" class="hidden mb-4 p-3 rounded-xl text-xs font-medium border flex items-center gap-2">
+          <i id="alertIcon" class="fa-solid fa-circle-info"></i>
+          <span id="alertMessage"></span>
+        </div>
+
+        <!-- FORM DAFTAR -->
+        <form onsubmit="handleRegisterSubmit(event)" class="space-y-3.5">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Nama Lengkap</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500 pointer-events-none text-xs">
+                <i class="fa-solid fa-user"></i>
+              </span>
+              <input type="text" id="regName" required placeholder="Contoh: Budi Santoso"
+                class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition placeholder-slate-600">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Alamat Email Aktif</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500 pointer-events-none text-xs">
+                <i class="fa-solid fa-envelope"></i>
+              </span>
+              <input type="email" id="regEmail" required placeholder="nama@email.com"
+                class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition placeholder-slate-600">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Nomor WhatsApp / HP</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500 pointer-events-none text-xs">
+                <i class="fa-brands fa-whatsapp"></i>
+              </span>
+              <input type="tel" id="regPhone" required placeholder="0812xxxxxxxx"
+                class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition placeholder-slate-600">
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="block text-xs font-semibold text-slate-300">Kata Sandi</label>
+              <span class="text-[10px] text-slate-500">Min. 6 karakter</span>
+            </div>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500 pointer-events-none text-xs">
+                <i class="fa-solid fa-lock"></i>
+              </span>
+              <input type="password" id="regPassword" required minlength="6" placeholder="••••••••"
+                class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-10 py-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition placeholder-slate-600">
+              <button type="button" onclick="togglePasswordVisibility('regPassword', 'eyeIcon1')"
+                class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-slate-300 text-xs">
+                <i id="eyeIcon1" class="fa-solid fa-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Konfirmasi Kata Sandi</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500 pointer-events-none text-xs">
+                <i class="fa-solid fa-shield-halved"></i>
+              </span>
+              <input type="password" id="regConfirmPassword" required minlength="6" placeholder="••••••••"
+                class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-10 py-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition placeholder-slate-600">
+              <button type="button" onclick="togglePasswordVisibility('regConfirmPassword', 'eyeIcon2')"
+                class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-slate-300 text-xs">
+                <i id="eyeIcon2" class="fa-solid fa-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" id="submitBtn"
+            class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl text-sm transition shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 mt-4">
+            <span id="submitBtnText">Daftar Sekarang</span>
+            <i class="fa-solid fa-arrow-right text-xs"></i>
+          </button>
+        </form>
+
+        <!-- FOOTER TEXT DALAM CARD -->
+        <p class="text-center text-xs text-slate-500 mt-5 pt-4 border-t border-slate-800/80">
+          Sudah punya akun?
+          <a id="bottomLoginLink" href="login.html" class="text-indigo-400 hover:text-indigo-300 font-semibold ml-1">
+            Masuk di sini
+          </a>
+        </p>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="bg-slate-900 border-t border-slate-800 py-6 text-center text-xs text-slate-500">
+    <p>© 2026 PremiumHub Store. Semua hak cipta dilindungi.</p>
+  </footer>
+
+  <script>
+    // ==================== KONFIGURASI SUPABASE ====================
+    const SUPABASE_URL = "https://nkacjcwucbrwkdxmdryl.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_EgrMoTHK2sNEGZcJMgM2Mg_q0_fs9i_";
+
+    let supabase = null;
+    if (window.supabase && SUPABASE_KEY) {
+      try {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      } catch (e) {
+        console.error("Gagal inisialisasi Supabase:", e);
+      }
+    }
+
+    // Ambil parameter jika ada (misal redirect produk atau pre-fill email)
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetProduct = urlParams.get('product');
+    const prefillEmail = urlParams.get('email');
+
+    if (prefillEmail) {
+      document.getElementById('regEmail').value = prefillEmail;
+    }
+
+    // Perbarui link ke login agar membawa parameter produk
+    if (targetProduct) {
+      document.getElementById('navLoginLink').href = `login.html?product=${encodeURIComponent(targetProduct)}`;
+      document.getElementById('bottomLoginLink').href = `login.html?product=${encodeURIComponent(targetProduct)}`;
+    }
+
+    function redirectToStore() {
+      if (targetProduct) {
+        window.location.href = `index.html?buy=${encodeURIComponent(targetProduct)}`;
+      } else {
+        window.location.href = 'index.html';
+      }
+    }
+
+    function togglePasswordVisibility(fieldId, iconId) {
+      const pwdInput = document.getElementById(fieldId);
+      const eye = document.getElementById(iconId);
+      if (pwdInput.type === 'password') {
+        pwdInput.type = 'text';
+        eye.className = 'fa-solid fa-eye-slash';
+      } else {
+        pwdInput.type = 'password';
+        eye.className = 'fa-solid fa-eye';
+      }
+    }
+
+    function showAlert(msg, type = 'error') {
+      const box = document.getElementById('alertBox');
+      const icon = document.getElementById('alertIcon');
+      const text = document.getElementById('alertMessage');
+
+      box.classList.remove('hidden');
+      text.innerText = msg;
+
+      if (type === 'error') {
+        box.className = "mb-4 p-3 rounded-xl text-xs font-medium border flex items-center gap-2 bg-rose-500/10 border-rose-500/30 text-rose-300";
+        icon.className = "fa-solid fa-circle-exclamation text-rose-400";
+      } else {
+        box.className = "mb-4 p-3 rounded-xl text-xs font-medium border flex items-center gap-2 bg-emerald-500/10 border-emerald-500/30 text-emerald-300";
+        icon.className = "fa-solid fa-circle-check text-emerald-400";
+      }
+    }
+
+    function hideAlert() {
+      document.getElementById('alertBox').classList.add('hidden');
+    }
+
+    async function handleRegisterSubmit(e) {
+      e.preventDefault();
+      hideAlert();
+
+      const name = document.getElementById('regName').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const phone = document.getElementById('regPhone').value.trim();
+      const password = document.getElementById('regPassword').value;
+      const confirmPassword = document.getElementById('regConfirmPassword').value;
+      const btn = document.getElementById('submitBtn');
+      const btnText = document.getElementById('submitBtnText');
+
+      if (password !== confirmPassword) {
+        showAlert("Konfirmasi kata sandi tidak cocok. Mohon periksa kembali.", "error");
+        return;
+      }
+
+      if (password.length < 6) {
+        showAlert("Kata sandi minimal 6 karakter.", "error");
+        return;
+      }
+
+      btn.disabled = true;
+      btnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Mendaftarkan akun...';
+
+      try {
+        let userId = 'user_' + Date.now();
+
+        if (supabase) {
+          // 1. Registrasi ke Supabase Auth
+          const { data, error } = await supabase.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+              data: {
+                full_name: name,
+                phone: phone
+              }
+            }
+          });
+
+          if (error) {
+            showAlert("Gagal mendaftar: " + error.message, "error");
+            btn.disabled = false;
+            btnText.innerText = "Daftar Sekarang";
+            return;
+          }
+
+          if (data && data.user) {
+            userId = data.user.id;
+
+            // 2. Simpan profil ke tabel 'profiles' jika tabel ada
+            try {
+              await supabase.from('profiles').insert([{
+                id: userId,
+                email: email,
+                full_name: name,
+                phone: phone,
+                created_at: new Date().toISOString()
+              }]);
+            } catch (err) {
+              console.warn("Info: Tabel profiles belum dibuat, data profil disimpan lokal:", err);
+            }
+          }
+        }
+
+        // 3. Simpan data user aktif di LocalStorage untuk sesi toko
+        const currentUser = {
+          id: userId,
+          name: name,
+          email: email,
+          phone: phone,
+          joinedAt: new Date().toISOString()
+        };
+        localStorage.setItem('premium_user', JSON.stringify(currentUser));
+
+        showAlert("Pendaftaran berhasil! Akun Anda aktif. Mengalihkan ke toko...", "success");
+        setTimeout(redirectToStore, 1000);
+
+      } catch (err) {
+        console.error(err);
+        // Fallback jika ada kendala jaringan
+        const currentUser = {
+          id: 'user_' + Date.now(),
+          name: name,
+          email: email,
+          phone: phone,
+          joinedAt: new Date().toISOString()
+        };
+        localStorage.setItem('premium_user', JSON.stringify(currentUser));
+
+        showAlert("Akun berhasil dibuat! Mengalihkan...", "success");
+        setTimeout(redirectToStore, 1000);
+      }
+    }
+  </script>
+</body>
+
+</html>
